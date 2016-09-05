@@ -1,4 +1,5 @@
 %% Lab 1 Task 1 Move the Robot
+%Drevin testing github comment
 clear all;
 robot = raspbot();
 tStart = tic;
@@ -106,7 +107,7 @@ pause(2);
 velocity = -.05; % in m
 % sim variables
 signedDistance = 0; % in m
-loop = 1;
+%loop = 1;
 tStart = tic;
 while(signedDistance >= -.3048)
     loop = loop + 1;
@@ -137,12 +138,17 @@ plot(timeArray,leftArray,timeArray,rightArray);
 
 %% Lab 1 Challenge Task
 % constants
+clear all;
+robot = raspbot();
+global encodeC 
+encodeC  = 1000*.95; %adjusting for slight discrepancy between 
+% reading and travel
 global velocity;
 velocity = .05; % in m
 global leftStart;
-leftStart = double(robot.encoders.LatestMessage.Data(1))/1000;
+leftStart = double(robot.encoders.LatestMessage.Data(1))/encodeC;
 global rightStart;
-rightStart = double(robot.encoders.LatestMessage.Data(2))/1000;
+rightStart = double(robot.encoders.LatestMessage.Data(2))/encodeC;
 
 % variables
 global timeArray;
@@ -160,18 +166,18 @@ global tStart;
 tStart = tic;
 
 robot.sendVelocity(velocity, velocity);
-while(signedDistance < .2)
+while(signedDistance < .2-velocity*.005)
     loop = loop + 1;
     
     time = toc(tStart);
     tStart = tic;
     timeArray(loop) = timeArray(loop-1) + time;
     
-    leftEncoder = double(robot.encoders.LatestMessage.Data(1))/1000;
+    leftEncoder = double(robot.encoders.LatestMessage.Data(1))/encodeC;
     leftDist = leftEncoder - leftStart;
     leftArray(loop) = leftDist;
     
-    rightEncoder = double(robot.encoders.LatestMessage.Data(2))/1000;
+    rightEncoder = double(robot.encoders.LatestMessage.Data(2))/encodeC;
     rightDist = rightEncoder - rightStart;
     rightArray(loop) = rightDist;
     
@@ -181,31 +187,51 @@ while(signedDistance < .2)
     robot.sendVelocity(velocity, velocity);
     pause(.005);
 end
-robot.sendVelocity(0, 0);
-plot(timeArray,leftArray,timeArray,rightArray);
+robot.stop();
+pausetime = timeArray(loop);
+while ( timeArray(loop) - pausetime < 2)
+        loop = loop + 1;
+    
+    time = toc(tStart);
+    tStart = tic;
+    timeArray(loop) = timeArray(loop-1) + time;
+    
+    leftEncoder = double(robot.encoders.LatestMessage.Data(1))/encodeC;
+    leftDist = leftEncoder - leftStart;
+    leftArray(loop) = leftDist;
+    
+    rightEncoder = double(robot.encoders.LatestMessage.Data(2))/encodeC;
+    rightDist = rightEncoder - rightStart;
+    rightArray(loop) = rightDist;
+    
+    signedDistance = (leftDist + rightDist)/2;
+    
+    plot(timeArray,leftArray,timeArray,rightArray);
+   
+    pause(.005);
+end
+%pause(2);
 
-pause(2);
-
-leftStart = double(robot.encoders.LatestMessage.Data(1))/1000;
-rightStart = double(robot.encoders.LatestMessage.Data(2))/1000;
+%leftStart = double(robot.encoders.LatestMessage.Data(1))/1000;
+%rightStart = double(robot.encoders.LatestMessage.Data(2))/1000;
 velocity = -.05; % in m
-signedDistance = 0; % in m
-loop = 1;
-tStart = tic;
+%signedDistance = 0; % in m
+%loop = 1;
+
 
 robot.sendVelocity(velocity, velocity);
-while(signedDistance > -0.3048)
+while(signedDistance > .2 -0.3048-velocity*0.005)
     loop = loop + 1;
     
     time = toc(tStart);
     tStart = tic;
     timeArray(loop) = timeArray(loop-1) + time;
     
-    leftEncoder = double(robot.encoders.LatestMessage.Data(1))/1000;
-    leftDist = leftEncoder - leftStart
+    leftEncoder = double(robot.encoders.LatestMessage.Data(1))/encodeC;
+    leftDist = leftEncoder - leftStart;
     leftArray(loop) = leftDist;
     
-    rightEncoder = double(robot.encoders.LatestMessage.Data(2))/1000;
+    rightEncoder = double(robot.encoders.LatestMessage.Data(2))/encodeC;
     rightDist = rightEncoder - rightStart;
     rightArray(loop) = rightDist;
     
@@ -215,5 +241,7 @@ while(signedDistance > -0.3048)
     robot.sendVelocity(velocity, velocity);
     pause(.005);
 end
-robot.sendVelocity(0, 0);
+robot.stop();
+ pause(.005);
+robot.stop();
 plot(timeArray,leftArray,timeArray,rightArray);
